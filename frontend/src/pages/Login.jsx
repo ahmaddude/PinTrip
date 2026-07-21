@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { MapPin, Eye, EyeOff, ArrowRight } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
+import GoogleButton from "../components/GoogleButton";
 
 export default function Login() {
   const { login } = useAuth();
@@ -51,6 +52,18 @@ export default function Login() {
             Welcome back
           </h2>
           <p className="text-[#9A9384] text-center text-sm mb-8">Log in to continue your journey</p>
+
+          <GoogleButton mode="login" />
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-[#D8CFBC]" />
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-white px-3 text-[#9A9384] uppercase tracking-widest font-mono">or</span>
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-xs tracking-[0.2em] uppercase text-[#9A9384] font-mono mb-2">Email</label>
