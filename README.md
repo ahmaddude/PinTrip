@@ -26,37 +26,6 @@ PinTrip is a MERN social media web application for travelers. Users can discover
 - Socket.IO
 - Leaflet Maps
 
-## Installation
 
-Clone the repository and install the dependencies.
-
-```bash
-git clone <repository-url>
-cd PinTrip
-
-cd backend
-npm install
-
-cd ../frontend
-npm install
-```
-
-Create a `.env` file inside the backend directory and add your MongoDB, Supabase, JWT, email, and Google OAuth credentials.
-
-Start both servers:
-
-```bash
-# Backend
-cd backend
-npm run dev
-
-# Frontend
-cd frontend
-npm run dev
-```
-
-The frontend runs on `http://localhost:5173`.
-
----
 
 This project was built to practice building a complete social media application with authentication, maps, file uploads, real-time features, and a REST API.
