@@ -13,7 +13,7 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import morgan from "morgan";
 
-const requiredEnvVars = ["MONGO_DB", "JWT_SECRET", "CLIENT_URL"];
+const requiredEnvVars = ["MONGO_DB", "JWT_SECRET"];
 for (const v of requiredEnvVars) {
   if (!process.env[v]) {
     console.error(`Missing required env var: ${v}`);
