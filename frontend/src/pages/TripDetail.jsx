@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import api from "../utils/api";
 import { useAuth } from "../context/AuthContext";
 import PinCard from "../components/PinCard";
+import { confirmToast } from "../components/ConfirmToast";
 
 function FitBounds({ positions }) {
   const map = useMap();
@@ -79,7 +80,8 @@ export default function TripDetail() {
   };
 
   const handleDelete = async () => {
-    if (!confirm("Delete this trip? Pins will be kept as standalone pins.")) return;
+    const ok = await confirmToast("Delete this trip? Pins will be kept as standalone pins.", { confirmLabel: "Delete" });
+    if (!ok) return;
     try {
       await api.delete(`/trips/${id}`);
       toast.success("Trip deleted");

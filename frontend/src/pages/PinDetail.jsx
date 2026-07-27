@@ -4,6 +4,7 @@ import { Heart, MessageCircle, MapPin, Trash2, Send, ArrowLeft, Users, ChevronLe
 import toast from "react-hot-toast";
 import api from "../utils/api";
 import { useAuth } from "../context/AuthContext";
+import { confirmToast } from "../components/ConfirmToast";
 
 export default function PinDetail() {
   const { id } = useParams();
@@ -60,7 +61,8 @@ export default function PinDetail() {
   };
 
   const handleDelete = async () => {
-    if (!confirm("Delete this pin?")) return;
+    const ok = await confirmToast("Delete this pin?", { confirmLabel: "Delete" });
+    if (!ok) return;
     try {
       await api.delete(`/pin/delete/${id}`);
       toast.success("Pin deleted");
