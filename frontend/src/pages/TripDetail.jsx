@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { MapPin, Calendar, Trash2, ArrowLeft, Globe, Users, Lock } from "lucide-react";
+import { MapPin, Calendar, Trash2, ArrowLeft, Globe, Users, Lock, Pencil, Plus, X } from "lucide-react";
 import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import toast from "react-hot-toast";
@@ -57,11 +57,32 @@ export default function TripDetail() {
   const [pins, setPins] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [editOpen, setEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    title: "",
+    description: "",
+    startDate: "",
+    endDate: "",
+    visibility: "public",
+  });
+  const [editCoverFile, setEditCoverFile] = useState(null);
+  const [editCoverPreview, setEditCoverPreview] = useState(null);
+  const [editSaving, setEditSaving] = useState(false);
+
+  const [addPinOpen, setAddPinOpen] = useState(false);
+  const [myPins, setMyPins] = useState([]);
+  const [myPinsLoading, setMyPinsLoading] = useState(false);
+  const [addingPinId, setAddingPinId] = useState(null);
+
   useEffect(() => {
     const controller = new AbortController();
     fetchTrip(controller.signal);
     return () => controller.abort();
   }, [id]);
+
+  useEffect(() => {
+    return () => { if (editCoverPreview) URL.revokeObjectURL(editCoverPreview); };
+  }, [editCoverPreview]);
 
   const fetchTrip = async (signal) => {
     setLoading(true);
@@ -76,6 +97,75 @@ export default function TripDetail() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openEditModal = () => {
+    setEditForm({
+      title: trip.title || "",
+      description: trip.description || "",
+      startDate: trip.startDate ? trip.startDate.slice(0, 10) : "",
+      endDate: trip.endDate ? trip.endDate.slice(0, 10) : "",
+      visibility: trip.visibility || "public",
+    });
+    setEditCoverFile(null);
+    setEditCoverPreview(null);
+    setEditOpen(true);
+  };
+
+  const handleEditSave = async () => {
+    if (!editForm.title.trim()) {
+      toast.error("Title is required");
+      return;
+    }
+    setEditSaving(true);
+    try {
+      const formData = new FormData();
+      formData.append("title", editForm.title);
+      formData.append("description", editForm.description);
+      formData.append("startDate", editForm.startDate || "");
+      formData.append("endDate", editForm.endDate || "");
+      formData.append("visibility", editForm.visibility);
+      if (editCoverFile) formData.append("coverPhoto", editCoverFile);
+
+      const res = await api.put(`/trips/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setTrip(res.data.trip);
+      setEditOpen(false);
+      toast.success("Trip updated");
+    } catch {
+      toast.error("Failed to update trip");
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
+  const openAddPinModal = async () => {
+    setAddPinOpen(true);
+    setMyPinsLoading(true);
+    try {
+      const res = await api.get("/pin/my-pins", { params: { limit: 100 } });
+      const available = res.data.pins.filter((p) => p.trip !== id);
+      setMyPins(available);
+    } catch {
+      toast.error("Failed to load your pins");
+    } finally {
+      setMyPinsLoading(false);
+    }
+  };
+
+  const handleAddPin = async (pinId) => {
+    setAddingPinId(pinId);
+    try {
+      const res = await api.patch(`/trips/${id}/add-pin`, { pinId });
+      setPins((prev) => [...prev, res.data.pin]);
+      setMyPins((prev) => prev.filter((p) => p._id !== pinId));
+      toast.success("Pin added to trip");
+    } catch {
+      toast.error("Failed to add pin");
+    } finally {
+      setAddingPinId(null);
     }
   };
 
@@ -175,12 +265,22 @@ export default function TripDetail() {
                 </h1>
               </div>
               {isOwner && (
-                <button
-                  onClick={handleDelete}
-                  className="p-2 text-[#A23B3B] hover:bg-[#F4E4DE] rounded-md transition"
-                >
-                  <Trash2 size={16} />
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={openEditModal}
+                    className="p-2 text-[#6B6558] hover:bg-[#E7DFCE] rounded-md transition"
+                    title="Edit trip"
+                  >
+                    <Pencil size={16} />
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    className="p-2 text-[#A23B3B] hover:bg-[#F4E4DE] rounded-md transition"
+                    title="Delete trip"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               )}
             </div>
 
@@ -261,13 +361,21 @@ export default function TripDetail() {
           </div>
         )}
 
-        <div className="mb-6">
+        <div className="flex items-center justify-between mb-6">
           <h2
-            className="text-lg text-[#202A22] mb-4"
+            className="text-lg text-[#202A22]"
             style={{ fontFamily: "'Fraunces', serif" }}
           >
             Trip Pins
           </h2>
+          {isOwner && (
+            <button
+              onClick={openAddPinModal}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[#35503F] border border-[#35503F] rounded-md hover:bg-[#35503F] hover:text-[#F2ECE0] transition"
+            >
+              <Plus size={14} /> Add Pin
+            </button>
+          )}
         </div>
 
         {pins.length === 0 ? (
@@ -275,12 +383,21 @@ export default function TripDetail() {
             <MapPin size={24} strokeWidth={1.5} className="text-[#B8863B] mb-3" />
             <p className="text-[#6B6558] text-sm">No pins in this trip yet</p>
             {isOwner && (
-              <Link
-                to="/create"
-                className="mt-4 text-sm text-[#35503F] hover:text-[#202A22] transition font-medium"
-              >
-                Create a pin
-              </Link>
+              <div className="flex gap-3 mt-4">
+                <button
+                  onClick={openAddPinModal}
+                  className="text-sm text-[#35503F] hover:text-[#202A22] transition font-medium"
+                >
+                  Add existing pins
+                </button>
+                <span className="text-[#D8CFBC]">·</span>
+                <Link
+                  to="/create"
+                  className="text-sm text-[#35503F] hover:text-[#202A22] transition font-medium"
+                >
+                  Create a new pin
+                </Link>
+              </div>
             )}
           </div>
         ) : (
@@ -306,6 +423,198 @@ export default function TripDetail() {
           </div>
         )}
       </div>
+
+      {editOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#202A22]/40 p-4">
+          <div className="bg-white border border-[#D8CFBC] rounded-md w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-5 border-b border-[#EDE7D9]">
+              <h3
+                className="text-lg text-[#202A22]"
+                style={{ fontFamily: "'Fraunces', serif" }}
+              >
+                Edit Trip
+              </h3>
+              <button onClick={() => setEditOpen(false)} className="p-1 text-[#9A9384] hover:text-[#202A22] transition">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="block text-xs tracking-[0.2em] uppercase text-[#9A9384] font-mono mb-1.5">
+                  Title *
+                </label>
+                <input
+                  type="text"
+                  value={editForm.title}
+                  onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                  className="w-full px-3 py-2.5 border border-[#D8CFBC] rounded-md text-sm text-[#202A22] focus:outline-none focus:ring-1 focus:ring-[#35503F] focus:border-[#35503F] transition placeholder:text-[#9A9384]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs tracking-[0.2em] uppercase text-[#9A9384] font-mono mb-1.5">
+                  Description
+                </label>
+                <textarea
+                  rows={3}
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  className="w-full px-3 py-2.5 border border-[#D8CFBC] rounded-md text-sm text-[#202A22] focus:outline-none focus:ring-1 focus:ring-[#35503F] focus:border-[#35503F] transition placeholder:text-[#9A9384] resize-none"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs tracking-[0.2em] uppercase text-[#9A9384] font-mono mb-1.5">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    value={editForm.startDate}
+                    onChange={(e) => setEditForm({ ...editForm, startDate: e.target.value })}
+                    className="w-full px-3 py-2.5 border border-[#D8CFBC] rounded-md text-sm text-[#202A22] focus:outline-none focus:ring-1 focus:ring-[#35503F] focus:border-[#35503F] transition"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs tracking-[0.2em] uppercase text-[#9A9384] font-mono mb-1.5">
+                    End Date
+                  </label>
+                  <input
+                    type="date"
+                    value={editForm.endDate}
+                    onChange={(e) => setEditForm({ ...editForm, endDate: e.target.value })}
+                    className="w-full px-3 py-2.5 border border-[#D8CFBC] rounded-md text-sm text-[#202A22] focus:outline-none focus:ring-1 focus:ring-[#35503F] focus:border-[#35503F] transition"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs tracking-[0.2em] uppercase text-[#9A9384] font-mono mb-1.5">
+                  Visibility
+                </label>
+                <select
+                  value={editForm.visibility}
+                  onChange={(e) => setEditForm({ ...editForm, visibility: e.target.value })}
+                  className="w-full px-3 py-2.5 border border-[#D8CFBC] rounded-md text-sm text-[#202A22] focus:outline-none focus:ring-1 focus:ring-[#35503F] focus:border-[#35503F] transition"
+                >
+                  <option value="public">Public</option>
+                  <option value="friends">Friends</option>
+                  <option value="private">Private</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs tracking-[0.2em] uppercase text-[#9A9384] font-mono mb-1.5">
+                  Cover Photo
+                </label>
+                {editCoverPreview ? (
+                  <div className="relative">
+                    <img src={editCoverPreview} alt="" className="w-full h-40 object-cover rounded-md" />
+                    <button
+                      type="button"
+                      onClick={() => { URL.revokeObjectURL(editCoverPreview); setEditCoverFile(null); setEditCoverPreview(null); }}
+                      className="absolute top-2 right-2 p-1 bg-[#202A22] text-[#F2ECE0] rounded-md hover:bg-[#35503F] transition"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex items-center justify-center h-24 border border-dashed border-[#D8CFBC] rounded-md cursor-pointer hover:border-[#B8863B] transition text-sm text-[#9A9384]">
+                    Click to change cover
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const f = e.target.files[0];
+                        if (f) { setEditCoverFile(f); setEditCoverPreview(URL.createObjectURL(f)); }
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 p-5 border-t border-[#EDE7D9]">
+              <button
+                onClick={() => setEditOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-[#6B6558] bg-[#F2ECE0] border border-[#D8CFBC] rounded-md hover:bg-[#E7DFCE] transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleEditSave}
+                disabled={editSaving}
+                className="px-4 py-2 text-sm font-medium text-[#F2ECE0] bg-[#202A22] rounded-md hover:bg-[#35503F] transition disabled:opacity-50"
+              >
+                {editSaving ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {addPinOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#202A22]/40 p-4">
+          <div className="bg-white border border-[#D8CFBC] rounded-md w-full max-w-2xl max-h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between p-5 border-b border-[#EDE7D9]">
+              <h3
+                className="text-lg text-[#202A22]"
+                style={{ fontFamily: "'Fraunces', serif" }}
+              >
+                Add Pin to Trip
+              </h3>
+              <button onClick={() => setAddPinOpen(false)} className="p-1 text-[#9A9384] hover:text-[#202A22] transition">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-5">
+              {myPinsLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="relative w-8 h-8">
+                    <div className="absolute inset-0 rounded-full border-2 border-[#D8CFBC]" />
+                    <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#35503F] animate-spin" />
+                  </div>
+                </div>
+              ) : myPins.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-sm text-[#9A9384]">No available pins to add</p>
+                  <Link
+                    to="/create"
+                    onClick={() => setAddPinOpen(false)}
+                    className="inline-block mt-3 text-sm text-[#35503F] hover:text-[#202A22] font-medium transition"
+                  >
+                    Create a new pin
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {myPins.map((pin) => (
+                    <div
+                      key={pin._id}
+                      className="flex items-center gap-3 p-2 rounded-md hover:bg-[#F2ECE0] transition"
+                    >
+                      <img
+                        src={pin.images?.[0]?.url}
+                        alt={pin.title}
+                        className="w-14 h-14 rounded-md object-cover flex-shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-[#202A22] truncate">{pin.title}</p>
+                        <p className="text-xs text-[#9A9384] flex items-center gap-1 truncate">
+                          <MapPin size={10} /> {pin.location}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleAddPin(pin._id)}
+                        disabled={addingPinId === pin._id}
+                        className="flex-shrink-0 px-3 py-1.5 text-xs font-medium text-[#35503F] border border-[#35503F] rounded-md hover:bg-[#35503F] hover:text-[#F2ECE0] transition disabled:opacity-50"
+                      >
+                        {addingPinId === pin._id ? "Adding..." : "Add"}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
