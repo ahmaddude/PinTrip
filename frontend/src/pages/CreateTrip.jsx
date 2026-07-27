@@ -243,7 +243,7 @@ export default function CreateTrip() {
                         onChange={() => togglePinSelection(pin._id)}
                         className="w-4 h-4 rounded border-[#D8CFBC] text-[#35503F] focus:ring-[#35503F]"
                       />
-                      <img src={pin.image} alt="" className="w-10 h-10 rounded object-cover" />
+                      <img src={pin.images?.[0]?.url} alt="" className="w-10 h-10 rounded object-cover" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-[#202A22] truncate">{pin.title}</p>
                         <p className="text-xs text-[#9A9384] truncate">{pin.location}</p>

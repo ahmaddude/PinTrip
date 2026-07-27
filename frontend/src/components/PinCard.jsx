@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
-import { Heart, MessageCircle, MapPin, ArrowUpRight, Users } from "lucide-react";
+import { Heart, MessageCircle, MapPin, ArrowUpRight, Users, Images } from "lucide-react";
 
 export default function PinCard({ pin }) {
+  const imageCount = pin.images?.length || 0;
+
   return (
     <Link
       to={`/pin/${pin._id}`}
@@ -9,7 +11,7 @@ export default function PinCard({ pin }) {
     >
       <div className="relative aspect-[4/3] overflow-hidden">
         <img
-          src={pin.image}
+          src={pin.images?.[0]?.url}
           alt={pin.title}
           className="w-full h-full object-cover group-hover:scale-105 transition duration-500 ease-out"
           loading="lazy"
@@ -19,6 +21,13 @@ export default function PinCard({ pin }) {
             e.target.alt = "Image unavailable";
           }}
         />
+
+        {imageCount > 1 && (
+          <div className="absolute top-3 left-3 bg-[#202A22]/70 text-[#F2ECE0] px-2 py-0.5 rounded-full flex items-center gap-1 text-xs font-mono">
+            <Images size={12} />
+            {imageCount}
+          </div>
+        )}
 
         <div className="absolute inset-0 bg-[#202A22]/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 

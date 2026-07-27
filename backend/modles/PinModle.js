@@ -24,10 +24,11 @@ const PinSchema = new mongoose.Schema(
       lat: { type: Number },
       lng: { type: Number },
     },
-    image: {
-      type: String, // URL from Supabase
-      required: true,
-    },
+    images: [
+      {
+        url: { type: String, required: true },
+      },
+    ],
     likes: [
       {
         type: mongoose.Schema.Types.ObjectId,

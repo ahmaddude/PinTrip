@@ -189,9 +189,9 @@ export default function ActivityPanel({ isOpen, onClose }) {
                       {timeAgo(notification.createdAt)}
                     </p>
                   </div>
-                  {notification.pin?.image && (
+                  {notification.pin?.images?.[0] && (
                     <img
-                      src={notification.pin.image}
+                      src={notification.pin.images[0].url}
                       alt=""
                       className="w-10 h-10 rounded-md object-cover flex-shrink-0"
                     />

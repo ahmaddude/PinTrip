@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Upload, MapPin, X, Crosshair } from "lucide-react";
+import { Upload, MapPin, X, Crosshair, ChevronLeft, ChevronRight } from "lucide-react";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import toast from "react-hot-toast";
 import api from "../utils/api";
@@ -25,14 +25,15 @@ export default function CreatePin() {
     location: "",
   });
   const [position, setPosition] = useState(null);
-  const [file, setFile] = useState(null);
-  const [preview, setPreview] = useState(null);
+  const [files, setFiles] = useState([]);
+  const [previews, setPreviews] = useState([]);
   const [loading, setLoading] = useState(false);
   const [taggedUsers, setTaggedUsers] = useState([]);
+  const [previewIndex, setPreviewIndex] = useState(0);
 
   useEffect(() => {
-    return () => { if (preview) URL.revokeObjectURL(preview); };
-  }, [preview]);
+    return () => { previews.forEach(p => URL.revokeObjectURL(p)); };
+  }, [previews]);
 
   const handleMapClick = useCallback(async (latlng) => {
     setPosition(latlng);
@@ -57,23 +58,33 @@ export default function CreatePin() {
   }, []);
 
   const handleFileChange = (e) => {
-    const selected = e.target.files[0];
-    if (selected) {
-      setFile(selected);
-      setPreview(URL.createObjectURL(selected));
+    const selected = Array.from(e.target.files);
+    if (selected.length === 0) return;
+
+    const newPreviews = selected.map(f => URL.createObjectURL(f));
+    setFiles(prev => [...prev, ...selected]);
+    setPreviews(prev => [...prev, ...newPreviews]);
+  };
+
+  const removeFile = (index) => {
+    URL.revokeObjectURL(previews[index]);
+    setFiles(prev => prev.filter((_, i) => i !== index));
+    setPreviews(prev => prev.filter((_, i) => i !== index));
+    if (previewIndex >= previews.length - 1 && previewIndex > 0) {
+      setPreviewIndex(previewIndex - 1);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!file) {
-      toast.error("Please select an image");
+    if (files.length === 0) {
+      toast.error("Please select at least one image");
       return;
     }
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append("image", file);
+      files.forEach(f => formData.append("images", f));
       formData.append("title", form.title);
       formData.append("description", form.description);
       formData.append("location", form.location);
@@ -113,25 +124,68 @@ export default function CreatePin() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="bg-white border border-[#D8CFBC] rounded-md p-6">
             <label className="block text-xs tracking-[0.2em] uppercase text-[#9A9384] font-mono mb-3">
-              Image
+              Images ({files.length})
             </label>
-            {preview ? (
-              <div className="relative">
-                <img src={preview} alt="" className="w-full max-h-96 object-cover rounded-md" />
-                <button
-                  type="button"
-                  onClick={() => { URL.revokeObjectURL(preview); setFile(null); setPreview(null); }}
-                  className="absolute top-2 right-2 p-1.5 bg-[#202A22] text-[#F2ECE0] rounded-md hover:bg-[#35503F] transition"
-                >
-                  <X size={14} />
-                </button>
+            {previews.length > 0 ? (
+              <div className="space-y-3">
+                <div className="relative">
+                  <img src={previews[previewIndex]} alt="" className="w-full max-h-96 object-cover rounded-md" />
+                  <button
+                    type="button"
+                    onClick={() => removeFile(previewIndex)}
+                    className="absolute top-2 right-2 p-1.5 bg-[#202A22] text-[#F2ECE0] rounded-md hover:bg-[#35503F] transition"
+                  >
+                    <X size={14} />
+                  </button>
+                  {files.length > 1 && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setPreviewIndex((previewIndex - 1 + files.length) % files.length)}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 bg-[#202A22]/70 text-[#F2ECE0] rounded-full hover:bg-[#202A22] transition"
+                      >
+                        <ChevronLeft size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPreviewIndex((previewIndex + 1) % files.length)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-[#202A22]/70 text-[#F2ECE0] rounded-full hover:bg-[#202A22] transition"
+                      >
+                        <ChevronRight size={16} />
+                      </button>
+                      <span className="absolute bottom-2 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-[#202A22]/70 text-[#F2ECE0] text-xs rounded-full font-mono">
+                        {previewIndex + 1} / {files.length}
+                      </span>
+                    </>
+                  )}
+                </div>
+                {files.length > 1 && (
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                    {previews.map((p, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setPreviewIndex(i)}
+                        className={`relative flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition ${
+                          i === previewIndex ? "border-[#35503F]" : "border-[#D8CFBC]"
+                        }`}
+                      >
+                        <img src={p} alt="" className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                    <label className="flex-shrink-0 w-16 h-16 rounded-md border border-dashed border-[#D8CFBC] flex items-center justify-center cursor-pointer hover:border-[#B8863B] transition">
+                      <Upload size={16} className="text-[#9A9384]" />
+                      <input type="file" accept="image/*" multiple onChange={handleFileChange} className="hidden" />
+                    </label>
+                  </div>
+                )}
               </div>
             ) : (
               <label className="flex flex-col items-center justify-center h-56 border border-dashed border-[#D8CFBC] rounded-md cursor-pointer hover:border-[#B8863B] transition">
                 <Upload size={32} strokeWidth={1.5} className="text-[#9A9384] mb-2" />
-                <span className="text-sm text-[#6B6558]">Click to upload an image</span>
-                <span className="text-xs text-[#9A9384] mt-1">JPG, PNG or WEBP</span>
-                <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+                <span className="text-sm text-[#6B6558]">Click to upload images</span>
+                <span className="text-xs text-[#9A9384] mt-1">Up to 10 · JPG, PNG or WEBP</span>
+                <input type="file" accept="image/*" multiple onChange={handleFileChange} className="hidden" />
               </label>
             )}
           </div>

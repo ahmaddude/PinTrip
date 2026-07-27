@@ -17,7 +17,7 @@ const upload = multer({
   },
 });
 
-pinRouter.post("/create", verifyToken, upload.single("image"), createPin);
+pinRouter.post("/create", verifyToken, upload.array("images", 10), createPin);
 
 pinRouter.get("/my-pins", verifyToken, getMyPins);
 

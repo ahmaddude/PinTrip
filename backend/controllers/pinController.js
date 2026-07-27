@@ -11,30 +11,35 @@ function escapeRegex(str) {
 export const createPin=async(req,res)=>{
     try {
         const userId = req.userId; 
-        const file = req.file;
+        const files = req.files;
         const { title, description, location, lat, lng, taggedUserIds } = req.body;
-        if (!title || !location || !file) {
-            return res.status(400).json({ message: "Title, location, and image are required" });
-        }
-        // 🖼️ Upload image to Supabase
-        const fileName = `pins/${userId}-${Date.now()}-${file.originalname}`;
-
-        const { error: uploadError } = await supabase.storage
-        .from("Pins") // reuse your bucket or create a new one called "pin-images"
-        .upload(fileName, file.buffer, {
-            contentType: file.mimetype,
-            upsert: true,
-        });
-
-        if (uploadError) {
-        console.error(uploadError);
-        return res.status(500).json({ message: "Image upload failed" });
+        if (!title || !location || !files || files.length === 0) {
+            return res.status(400).json({ message: "Title, location, and at least one image are required" });
         }
 
-        // 🌍 Get public URL
-        const { data: publicUrlData } = supabase.storage
-        .from("Pins")
-        .getPublicUrl(fileName);
+        // Upload all images to Supabase
+        const imageUrls = [];
+        for (const file of files) {
+            const fileName = `pins/${userId}-${Date.now()}-${Math.random().toString(36).slice(2)}-${file.originalname}`;
+
+            const { error: uploadError } = await supabase.storage
+            .from("Pins")
+            .upload(fileName, file.buffer, {
+                contentType: file.mimetype,
+                upsert: true,
+            });
+
+            if (uploadError) {
+            console.error(uploadError);
+            return res.status(500).json({ message: "Image upload failed" });
+            }
+
+            const { data: publicUrlData } = supabase.storage
+            .from("Pins")
+            .getPublicUrl(fileName);
+
+            imageUrls.push({ url: publicUrlData.publicUrl });
+        }
 
         // Parse tagged users from description (@mentions)
         let taggedUsers = [];
@@ -70,7 +75,7 @@ export const createPin=async(req,res)=>{
             lat: lat || null,
             lng: lng || null,
         },
-        image: publicUrlData.publicUrl,
+        images: imageUrls,
         taggedUsers,
         });
 

@@ -81,7 +81,7 @@ export default function MapPage() {
                 <Popup>
                   <div className="min-w-[200px]">
                     <img
-                      src={pin.image}
+                      src={pin.images?.[0]?.url}
                       alt={pin.title}
                       className="w-full h-28 object-cover"
                     />

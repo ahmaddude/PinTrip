@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { Heart, MessageCircle, MapPin, Trash2, Send, ArrowLeft, Users } from "lucide-react";
+import { Heart, MessageCircle, MapPin, Trash2, Send, ArrowLeft, Users, ChevronLeft, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../utils/api";
 import { useAuth } from "../context/AuthContext";
@@ -13,6 +13,7 @@ export default function PinDetail() {
   const [loading, setLoading] = useState(true);
   const [comment, setComment] = useState("");
   const [commentLoading, setCommentLoading] = useState(false);
+  const [imageIndex, setImageIndex] = useState(0);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -89,6 +90,8 @@ export default function PinDetail() {
 
   const isLiked = pin.likes?.some((l) => l._id === user?._id);
   const isOwner = pin.user?._id === user?._id;
+  const images = pin.images || [];
+  const imageCount = images.length;
 
   return (
     <div className="bg-[#F2ECE0] min-h-screen">
@@ -102,8 +105,44 @@ export default function PinDetail() {
 
         <div className="bg-white border border-[#D8CFBC] rounded-md overflow-hidden">
           <div className="md:flex">
-            <div className="md:w-1/2">
-              <img src={pin.image} alt={pin.title} className="w-full h-80 md:h-full object-cover" />
+            <div className="md:w-1/2 relative">
+              {imageCount > 0 && (
+                <img src={images[imageIndex]?.url} alt={pin.title} className="w-full h-80 md:h-full object-cover" />
+              )}
+              {imageCount > 1 && (
+                <>
+                  <button
+                    onClick={() => setImageIndex((imageIndex - 1 + imageCount) % imageCount)}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 bg-[#202A22]/70 text-[#F2ECE0] rounded-full hover:bg-[#202A22] transition"
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+                  <button
+                    onClick={() => setImageIndex((imageIndex + 1) % imageCount)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-[#202A22]/70 text-[#F2ECE0] rounded-full hover:bg-[#202A22] transition"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                  <span className="absolute bottom-2 left-1/2 -translate-x-1/2 px-2.5 py-0.5 bg-[#202A22]/70 text-[#F2ECE0] text-xs rounded-full font-mono">
+                    {imageIndex + 1} / {imageCount}
+                  </span>
+                </>
+              )}
+              {imageCount > 1 && (
+                <div className="absolute bottom-0 left-0 right-0 flex gap-1.5 p-2 bg-gradient-to-t from-[#202A22]/50 to-transparent">
+                  {images.map((img, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setImageIndex(i)}
+                      className={`w-12 h-12 rounded-md overflow-hidden border-2 flex-shrink-0 transition ${
+                        i === imageIndex ? "border-[#F2ECE0]" : "border-transparent opacity-70"
+                      }`}
+                    >
+                      <img src={img.url} alt="" className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="md:w-1/2 p-6 md:p-8 flex flex-col">
               <div className="flex items-center justify-between mb-5 pb-5 border-b border-[#EDE7D9]">

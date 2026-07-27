@@ -244,7 +244,7 @@ export default function TripDetail() {
                     <Popup>
                       <div className="text-center min-w-[120px]">
                         <img
-                          src={pin.image}
+                          src={pin.images?.[0]?.url}
                           alt={pin.title}
                           className="w-full h-20 object-cover rounded mb-1"
                         />
