@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import toast from "react-hot-toast";
 import api from "../utils/api";
 import { defaultPinIcon } from "../components/MapMarker";
+import MentionAutocomplete from "../components/MentionAutocomplete";
 
 function LocationMarker({ position, onPositionChange }) {
   useMapEvents({
@@ -27,6 +28,7 @@ export default function CreatePin() {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [taggedUsers, setTaggedUsers] = useState([]);
 
   useEffect(() => {
     return () => { if (preview) URL.revokeObjectURL(preview); };
@@ -77,6 +79,9 @@ export default function CreatePin() {
       formData.append("location", form.location);
       if (form.lat) formData.append("lat", form.lat);
       if (form.lng) formData.append("lng", form.lng);
+      if (taggedUsers.length > 0) {
+        formData.append("taggedUserIds", JSON.stringify(taggedUsers.map((u) => u._id)));
+      }
 
       await api.post("/pin/create", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -149,12 +154,10 @@ export default function CreatePin() {
               <label className="block text-xs tracking-[0.2em] uppercase text-[#9A9384] font-mono mb-2">
                 Description
               </label>
-              <textarea
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                rows={3}
-                className="w-full px-4 py-3 border border-[#D8CFBC] rounded-md text-sm text-[#202A22] focus:outline-none focus:ring-1 focus:ring-[#35503F] focus:border-[#35503F] transition resize-none placeholder:text-[#9A9384]"
-                placeholder="Tell the story behind this place..."
+              <MentionAutocomplete
+                text={form.description}
+                onTextChange={(value) => setForm({ ...form, description: value })}
+                onTaggedUsersChange={setTaggedUsers}
               />
             </div>
             <div>

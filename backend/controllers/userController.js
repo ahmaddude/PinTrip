@@ -1,6 +1,32 @@
 import  User  from "../modles/UserModle.js";
 import  Pin  from "../modles/PinModle.js";
 
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+export const searchUsersForMention = async (req, res) => {
+  try {
+    const query = req.query.q;
+    if (!query || query.length < 1) {
+      return res.status(400).json({ success: false, message: "Query is required" });
+    }
+
+    const regex = new RegExp(escapeRegex(query), "i");
+    
+    const users = await User.find({
+      name: regex,
+    })
+      .select("name avatar")
+      .limit(10);
+
+    res.status(200).json({ success: true, users });
+  } catch (error) {
+    console.error("Search users error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 export const getUserProfile = async (req, res) => {
   try {
     const userId = req.userId;

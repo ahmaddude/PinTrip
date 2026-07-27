@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { Heart, MessageCircle, MapPin, Trash2, Send, ArrowLeft } from "lucide-react";
+import { Heart, MessageCircle, MapPin, Trash2, Send, ArrowLeft, Users } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../utils/api";
 import { useAuth } from "../context/AuthContext";
@@ -139,6 +139,30 @@ export default function PinDetail() {
               </h2>
               {pin.description && (
                 <p className="text-[#6B6558] text-sm leading-relaxed mb-5">{pin.description}</p>
+              )}
+
+              {pin.taggedUsers && pin.taggedUsers.length > 0 && (
+                <div className="flex items-center gap-2 mb-5">
+                  <Users size={14} className="text-[#35503F]" />
+                  <div className="flex flex-wrap gap-2">
+                    {pin.taggedUsers.map((taggedUser) => (
+                      <Link
+                        key={taggedUser._id}
+                        to={`/profile/${taggedUser._id}`}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#E7DFCE] text-[#202A22] rounded-full text-xs font-medium hover:bg-[#D8CFBC] transition"
+                      >
+                        {taggedUser.avatar ? (
+                          <img src={taggedUser.avatar} alt="" className="w-4 h-4 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-4 h-4 rounded-full bg-[#35503F] text-[#F2ECE0] flex items-center justify-center text-[8px] font-semibold">
+                            {taggedUser.name?.charAt(0)}
+                          </div>
+                        )}
+                        @{taggedUser.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
               )}
 
               <div className="flex items-center gap-3 mb-5">

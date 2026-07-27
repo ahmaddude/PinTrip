@@ -1,10 +1,12 @@
 import express from "express";
 import { verifyToken } from "../middleWare/verifyToken.js";
-import { getFollowers, getUserProfile, respondFollowRequest, sendFollowReq, unfollowUser } from "../controllers/userController.js";
+import { getFollowers, getUserProfile, respondFollowRequest, searchUsersForMention, sendFollowReq, unfollowUser } from "../controllers/userController.js";
 
 const userRouter =express.Router();
 
 userRouter.get("/followers",verifyToken,getFollowers);
+
+userRouter.get("/search-mention", verifyToken, searchUsersForMention);
 
 userRouter.get("/:id",getUserProfile);
 

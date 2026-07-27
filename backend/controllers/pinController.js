@@ -1,6 +1,8 @@
 import Pin from "../modles/PinModle.js";
 import {supabase} from "../lib/supabaseClient.js"
 import User from "../modles/UserModle.js";
+import Notification from "../modles/NotificationsModle.js";
+import { getIo, onlineUsers } from "../utils/socket.js";
 
 function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -10,7 +12,7 @@ export const createPin=async(req,res)=>{
     try {
         const userId = req.userId; 
         const file = req.file;
-        const { title, description, location, lat, lng } = req.body;
+        const { title, description, location, lat, lng, taggedUserIds } = req.body;
         if (!title || !location || !file) {
             return res.status(400).json({ message: "Title, location, and image are required" });
         }
@@ -34,6 +36,30 @@ export const createPin=async(req,res)=>{
         .from("Pins")
         .getPublicUrl(fileName);
 
+        // Parse tagged users from description (@mentions)
+        let taggedUsers = [];
+        if (description) {
+            const mentionRegex = /@(\w+)/g;
+            let match;
+            const mentionedNames = [];
+            while ((match = mentionRegex.exec(description)) !== null) {
+                mentionedNames.push(match[1]);
+            }
+            
+            if (mentionedNames.length > 0) {
+                const mentionedUsers = await User.find({
+                    name: { $in: mentionedNames.map(name => new RegExp(`^${name}$`, 'i')) }
+                }).select('_id name');
+                taggedUsers = mentionedUsers.map(u => u._id);
+            }
+        }
+        
+        // Also add any explicitly tagged users from frontend
+        if (taggedUserIds) {
+            const ids = Array.isArray(taggedUserIds) ? taggedUserIds : JSON.parse(taggedUserIds);
+            taggedUsers = [...new Set([...taggedUsers, ...ids])];
+        }
+
         // 📌 Save pin to DB
         const pin = new Pin({
         user: userId,
@@ -45,9 +71,36 @@ export const createPin=async(req,res)=>{
             lng: lng || null,
         },
         image: publicUrlData.publicUrl,
+        taggedUsers,
         });
 
         await pin.save();
+
+        // Send notifications to tagged users
+        const sender = await User.findById(userId).select('name avatar');
+        const io = getIo();
+        
+        for (const taggedUserId of taggedUsers) {
+            if (taggedUserId.toString() === userId) continue; // Don't notify self
+            
+            const notification = new Notification({
+                recipient: taggedUserId,
+                sender: userId,
+                type: "mention",
+                pin: pin._id,
+                message: `${sender.name} mentioned you in a pin`,
+            });
+            await notification.save();
+            
+            // Emit real-time notification if user is online
+            const recipientSocketId = onlineUsers.get(taggedUserId.toString());
+            if (recipientSocketId && io) {
+                io.to(recipientSocketId).emit("newNotification", {
+                    ...notification.toObject(),
+                    sender: { _id: sender._id, name: sender.name, avatar: sender.avatar },
+                });
+            }
+        }
 
         res.status(201).json({
         success: true,
@@ -88,6 +141,7 @@ export const getPins = async (req, res) => {
         .populate("user", "name avatar")
         .populate("comments.user", "name avatar")
         .populate("likes", "name avatar")
+        .populate("taggedUsers", "name avatar")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit),
@@ -126,7 +180,8 @@ export const getOnePin = async (req, res) => {
     const pin = await Pin.findById(req.params.id)
       .populate("user", "name avatar")
       .populate("comments.user", "name avatar")
-      .populate("likes", "name avatar");
+      .populate("likes", "name avatar")
+      .populate("taggedUsers", "name avatar");
 
     if (!pin) return res.status(404).json({ message: "Pin not found" });
 
@@ -152,7 +207,8 @@ export const LikeAPin = async (req, res) => {
       const populatedPin = await Pin.findById(pin._id)
         .populate("user", "name avatar")
         .populate("comments.user", "name avatar")
-        .populate("likes", "name avatar");
+        .populate("likes", "name avatar")
+        .populate("taggedUsers", "name avatar");
 
       return res.status(200).json({
         success: true,
@@ -165,7 +221,8 @@ export const LikeAPin = async (req, res) => {
       const populatedPin = await Pin.findById(pin._id)
         .populate("user", "name avatar")
         .populate("comments.user", "name avatar")
-        .populate("likes", "name avatar");
+        .populate("likes", "name avatar")
+        .populate("taggedUsers", "name avatar");
 
       return res.status(200).json({
         success: true,
@@ -219,6 +276,7 @@ export const getFollowingPins=async(req,res)=>{
         .populate("user", "name avatar")
         .populate("comments.user", "name avatar")
         .populate("likes", "name avatar")
+        .populate("taggedUsers", "name avatar")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit),

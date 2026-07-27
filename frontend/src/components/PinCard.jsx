@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Heart, MessageCircle, MapPin, ArrowUpRight } from "lucide-react";
+import { Heart, MessageCircle, MapPin, ArrowUpRight, Users } from "lucide-react";
 
 export default function PinCard({ pin }) {
   return (
@@ -59,6 +59,15 @@ export default function PinCard({ pin }) {
             <MapPin size={12} className="text-[#B8863B] flex-shrink-0" />
             {pin.location}
           </p>
+        )}
+
+        {pin.taggedUsers && pin.taggedUsers.length > 0 && (
+          <div className="flex items-center gap-1.5 mt-2">
+            <Users size={12} className="text-[#35503F] flex-shrink-0" />
+            <p className="text-xs text-[#6B6558] truncate">
+              With {pin.taggedUsers.map((u) => u.name).join(", ")}
+            </p>
+          </div>
         )}
 
         {pin.user && (
