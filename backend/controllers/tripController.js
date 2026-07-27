@@ -5,19 +5,20 @@ import { supabase } from "../lib/supabaseClient.js";
 export const createTrip = async (req, res) => {
   try {
     const userId = req.userId;
-    const { title, description, startDate, endDate, visibility, coverPhoto } = req.body;
+    const { title, description, startDate, endDate, visibility } = req.body;
+    const file = req.file;
 
     if (!title) {
       return res.status(400).json({ success: false, message: "Title is required" });
     }
 
     let coverPhotoUrl = null;
-    if (coverPhoto) {
-      const fileName = `trips/${userId}-${Date.now()}-cover`;
+    if (file) {
+      const fileName = `trips/${userId}-${Date.now()}-${file.originalname}`;
       const { error: uploadError } = await supabase.storage
         .from("Pins")
-        .upload(fileName, coverPhoto.buffer, {
-          contentType: coverPhoto.mimetype,
+        .upload(fileName, file.buffer, {
+          contentType: file.mimetype,
           upsert: true,
         });
 
@@ -118,7 +119,8 @@ export const updateTrip = async (req, res) => {
   try {
     const userId = req.userId;
     const tripId = req.params.id;
-    const { title, description, startDate, endDate, visibility, coverPhoto } = req.body;
+    const { title, description, startDate, endDate, visibility } = req.body;
+    const file = req.file;
 
     const trip = await Trip.findById(tripId);
     if (!trip) {
@@ -129,12 +131,12 @@ export const updateTrip = async (req, res) => {
       return res.status(403).json({ success: false, message: "Unauthorized" });
     }
 
-    if (coverPhoto) {
-      const fileName = `trips/${userId}-${Date.now()}-cover`;
+    if (file) {
+      const fileName = `trips/${userId}-${Date.now()}-${file.originalname}`;
       const { error: uploadError } = await supabase.storage
         .from("Pins")
-        .upload(fileName, coverPhoto.buffer, {
-          contentType: coverPhoto.mimetype,
+        .upload(fileName, file.buffer, {
+          contentType: file.mimetype,
           upsert: true,
         });
 
