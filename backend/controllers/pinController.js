@@ -446,3 +446,42 @@ export const search = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+export const getMyPins = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 50));
+    const skip = (page - 1) * limit;
+
+    const query = {
+      $or: [
+        { user: userId },
+        { taggedUsers: userId },
+      ],
+    };
+
+    const [pins, total] = await Promise.all([
+      Pin.find(query)
+        .populate("user", "name avatar")
+        .populate("comments.user", "name avatar")
+        .populate("likes", "name avatar")
+        .populate("taggedUsers", "name avatar")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Pin.countDocuments(query),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      pins,
+      page,
+      total,
+      totalPages: Math.ceil(total / limit),
+    });
+  } catch (error) {
+    console.error("Error fetching my pins:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};

@@ -1,6 +1,6 @@
 import express from "express";
 import multer from "multer";
-import { comment, createPin, deletePin, getFollowingPins, getOnePin, getPins, LikeAPin, search } from "../controllers/pinController.js";
+import { comment, createPin, deletePin, getFollowingPins, getMyPins, getOnePin, getPins, LikeAPin, search } from "../controllers/pinController.js";
 import { verifyToken } from "../middleWare/verifyToken.js";
 import { optionalAuth } from "../middleWare/optionalverify.js";
 
@@ -18,6 +18,8 @@ const upload = multer({
 });
 
 pinRouter.post("/create", verifyToken, upload.single("image"), createPin);
+
+pinRouter.get("/my-pins", verifyToken, getMyPins);
 
 pinRouter.get("/pins", optionalAuth, getPins);
 

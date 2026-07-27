@@ -33,7 +33,7 @@ export default function CreateTrip() {
 
   const fetchUserPins = async () => {
     try {
-      const res = await api.get("/pin/pins?limit=100");
+      const res = await api.get("/pin/my-pins?limit=100");
       setUserPins(res.data.pins || []);
     } catch (err) {
       console.error("Failed to fetch pins:", err);
