@@ -25,4 +25,46 @@ export const createPinIcon = (color = "#2563eb", size = 36) =>
     popupAnchor: [0, -(size + 14)],
   });
 
+export const createAvatarIcon = (avatarUrl, size = 40) =>
+  L.divIcon({
+    className: "custom-avatar-marker",
+    html: `
+      <div style="
+        position: relative;
+        width: ${size}px;
+        height: ${size + 10}px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+      ">
+        <div style="
+          width: ${size}px;
+          height: ${size}px;
+          border-radius: 50%;
+          overflow: hidden;
+          border: 3px solid #F2ECE0;
+          background: #35503F;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        ">
+          ${avatarUrl
+            ? `<img src="${avatarUrl}" style="width:100%;height:100%;object-fit:cover;" />`
+            : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#F2ECE0;font-size:${size * 0.4}px;font-weight:600;font-family:Inter,sans-serif;">●</div>`
+          }
+        </div>
+        <div style="
+          width: 0;
+          height: 0;
+          border-left: 6px solid transparent;
+          border-right: 6px solid transparent;
+          border-top: 8px solid #F2ECE0;
+          margin-top: -1px;
+        "></div>
+      </div>
+    `,
+    iconSize: [size, size + 10],
+    iconAnchor: [size / 2, size + 10],
+    popupAnchor: [0, -(size + 10)],
+  });
+
 export const defaultPinIcon = createPinIcon("#35503F");

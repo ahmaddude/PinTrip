@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { Link } from "react-router-dom";
 import { MapPin } from "lucide-react";
 import api from "../utils/api";
-import { createPinIcon } from "../components/MapMarker";
+import { createAvatarIcon } from "../components/MapMarker";
 
 export default function MapPage() {
   const [pins, setPins] = useState([]);
@@ -76,7 +76,7 @@ export default function MapPage() {
               <Marker
                 key={pin._id}
                 position={[pin.coordinates.lat, pin.coordinates.lng]}
-                icon={createPinIcon("#35503F", 32)}
+                icon={createAvatarIcon(pin.user?.avatar, 40)}
               >
                 <Popup>
                   <div className="min-w-[200px]">

@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { MapPin, Calendar, Trash2, ArrowLeft, Globe, Users, Lock, Pencil, Plus, X } from "lucide-react";
 import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap } from "react-leaflet";
-import L from "leaflet";
 import toast from "react-hot-toast";
 import api from "../utils/api";
 import { useAuth } from "../context/AuthContext";
 import PinCard from "../components/PinCard";
 import { confirmToast } from "../components/ConfirmToast";
+import { createAvatarIcon } from "../components/MapMarker";
 
 function FitBounds({ positions }) {
   const map = useMap();
@@ -17,30 +17,6 @@ function FitBounds({ positions }) {
     }
   }, [positions, map]);
   return null;
-}
-
-function createNumberIcon(number) {
-  return L.divIcon({
-    className: "",
-    html: `<div style="
-      width: 28px;
-      height: 28px;
-      background: #35503F;
-      color: #F2ECE0;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 700;
-      font-family: 'Inter', sans-serif;
-      border: 2px solid #F2ECE0;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    ">${number}</div>`,
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
-    popupAnchor: [0, -16],
-  });
 }
 
 const visibilityIcons = {
@@ -341,7 +317,7 @@ export default function TripDetail() {
                   <Marker
                     key={pin._id}
                     position={[pin.coordinates.lat, pin.coordinates.lng]}
-                    icon={createNumberIcon(index + 1)}
+                    icon={createAvatarIcon(pin.user?.avatar, 40)}
                   >
                     <Popup>
                       <div className="text-center min-w-[120px]">
