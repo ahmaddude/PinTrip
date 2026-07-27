@@ -40,6 +40,15 @@ const PinSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    trip: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Trip",
+      default: null,
+    },
+    tripOrder: {
+      type: Number,
+      default: null,
+    },
     createdAt: {
       type: Date,
       default: Date.now,

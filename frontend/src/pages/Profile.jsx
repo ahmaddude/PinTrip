@@ -1,27 +1,34 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Settings, MapPin, Check, X } from "lucide-react";
+import { Settings, MapPin, Check, X, Compass } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../utils/api";
 import { useAuth } from "../context/AuthContext";
 import PinCard from "../components/PinCard";
+import TripCard from "../components/TripCard";
 
 export default function Profile() {
   const { id } = useParams();
   const { user: currentUser } = useAuth();
   const [profile, setProfile] = useState(null);
   const [pins, setPins] = useState([]);
+  const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("pins");
 
   useEffect(() => {
     const controller = new AbortController();
     const fetchProfile = async () => {
       setLoading(true);
       try {
-        const res = await api.get(`/user/${id}`, { signal: controller.signal });
-        setProfile(res.data.user);
-        setPins(res.data.pins || []);
+        const [profileRes, tripsRes] = await Promise.all([
+          api.get(`/user/${id}`, { signal: controller.signal }),
+          api.get(`/trips/user/${id}`, { signal: controller.signal }),
+        ]);
+        setProfile(profileRes.data.user);
+        setPins(profileRes.data.pins || []);
+        setTrips(tripsRes.data.trips || []);
       } catch (err) {
         if (err.name !== "CanceledError" && err.name !== "AbortError") {
           toast.error(err.response?.data?.message || "Failed to load profile");
@@ -243,6 +250,7 @@ export default function Profile() {
             <div className="flex gap-6 mt-5 justify-center sm:justify-start">
               {[
                 { count: pins.length, label: "pins" },
+                { count: trips.length, label: "trips" },
                 { count: profile.followerCount || 0, label: "followers" },
                 { count: profile.followingCount || 0, label: "following" },
               ].map((stat, i) => (
@@ -268,17 +276,86 @@ export default function Profile() {
         </div>
       </div>
 
-      {pins.length === 0 ? (
-        <div className="flex flex-col items-center text-center py-20 border border-dashed border-[#D8CFBC] rounded-sm">
-          <MapPin size={24} strokeWidth={1.5} className="text-[#B8863B] mb-3" />
-          <p className="text-[#6B6558] text-sm">No pins yet</p>
+      {isOwn && (
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex gap-2">
+            <Link
+              to="/create"
+              className="px-4 py-2 rounded-md text-sm font-medium bg-[#202A22] text-[#F2ECE0] hover:bg-[#35503F] transition"
+            >
+              Create Pin
+            </Link>
+            <Link
+              to="/trip/create"
+              className="px-4 py-2 rounded-md text-sm font-medium bg-[#E7DFCE] text-[#6B6558] hover:bg-[#D8CFBC] transition"
+            >
+              Create Trip
+            </Link>
+          </div>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {pins.map((pin) => (
-            <PinCard key={pin._id} pin={pin} />
-          ))}
-        </div>
+      )}
+
+      <div className="flex gap-2 mb-6 border-b border-[#D8CFBC] pb-2">
+        <button
+          onClick={() => setActiveTab("pins")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition ${
+            activeTab === "pins"
+              ? "bg-[#202A22] text-[#F2ECE0]"
+              : "text-[#6B6558] hover:bg-[#E7DFCE]"
+          }`}
+        >
+          <MapPin size={16} />
+          Pins ({pins.length})
+        </button>
+        <button
+          onClick={() => setActiveTab("trips")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition ${
+            activeTab === "trips"
+              ? "bg-[#202A22] text-[#F2ECE0]"
+              : "text-[#6B6558] hover:bg-[#E7DFCE]"
+          }`}
+        >
+          <Compass size={16} />
+          Trips ({trips.length})
+        </button>
+      </div>
+
+      {activeTab === "pins" && (
+        pins.length === 0 ? (
+          <div className="flex flex-col items-center text-center py-20 border border-dashed border-[#D8CFBC] rounded-sm">
+            <MapPin size={24} strokeWidth={1.5} className="text-[#B8863B] mb-3" />
+            <p className="text-[#6B6558] text-sm">No pins yet</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {pins.map((pin) => (
+              <PinCard key={pin._id} pin={pin} />
+            ))}
+          </div>
+        )
+      )}
+
+      {activeTab === "trips" && (
+        trips.length === 0 ? (
+          <div className="flex flex-col items-center text-center py-20 border border-dashed border-[#D8CFBC] rounded-sm">
+            <Compass size={24} strokeWidth={1.5} className="text-[#B8863B] mb-3" />
+            <p className="text-[#6B6558] text-sm">No trips yet</p>
+            {isOwn && (
+              <Link
+                to="/trip/create"
+                className="mt-4 text-sm text-[#35503F] hover:text-[#202A22] transition font-medium"
+              >
+                Create a trip
+              </Link>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {trips.map((trip) => (
+              <TripCard key={trip._id} trip={trip} />
+            ))}
+          </div>
+        )
       )}
     </div>
   );

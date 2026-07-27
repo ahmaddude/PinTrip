@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Home, Compass, Map, Plus, User, Users, X } from "lucide-react";
+import { Home, Compass, Map, Plus, User, Users, X, MapPin } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../utils/api";
@@ -27,6 +27,7 @@ export default function Sidebar({ isOpen, onClose }) {
     { to: "/friends", icon: Users, label: "Friends", badge: requestCount },
     { to: "/map", icon: Map, label: "Map" },
     { to: "/create", icon: Plus, label: "Create Pin" },
+    { to: "/trip/create", icon: MapPin, label: "Create Trip" },
   ];
 
   return (

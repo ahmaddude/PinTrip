@@ -7,6 +7,7 @@ import userRouter from "./routes/userRoutes.js"
 import cookieParser from 'cookie-parser';
 import pinRouter from "./routes/pinRoutes.js";
 import notificationRouter from "./routes/notificationRoutes.js";
+import tripRouter from "./routes/tripRoutes.js";
 import http from "http";
 import { initSocket } from "./utils/socket.js";
 import cors from "cors";
@@ -68,6 +69,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
 app.use("/api/pin", pinRouter);
 app.use("/api/notifications", notificationRouter);
+app.use("/api/trips", tripRouter);
 
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "Route not found" });

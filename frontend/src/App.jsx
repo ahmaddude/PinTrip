@@ -16,6 +16,8 @@ import Profile from "./pages/Profile";
 import Search from "./pages/Search";
 import Settings from "./pages/Settings";
 import Friends from "./pages/Friends";
+import CreateTrip from "./pages/CreateTrip";
+import TripDetail from "./pages/TripDetail";
 import NotFound from "./pages/NotFound";
 
 function AuthSpinner() {
@@ -58,10 +60,12 @@ export default function App() {
           <Route path="/explore" element={<Explore />} />
           <Route path="/map" element={<MapPage />} />
           <Route path="/pin/:id" element={<PinDetail />} />
+          <Route path="/trip/:id" element={<TripDetail />} />
           <Route path="/profile/:id" element={<Profile />} />
           <Route path="/search" element={<Search />} />
           <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
           <Route path="/create" element={<ProtectedRoute><CreatePin /></ProtectedRoute>} />
+          <Route path="/trip/create" element={<ProtectedRoute><CreateTrip /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         </Route>
 
