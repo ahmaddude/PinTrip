@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import api from "../utils/api";
+import { connectSocket, disconnectSocket } from "../utils/socket";
 
 const AuthContext = createContext(null);
 
@@ -11,6 +12,7 @@ export function AuthProvider({ children }) {
     try {
       const res = await api.get("/auth/check-auth");
       setUser(res.data.user);
+      connectSocket(res.data.user._id);
     } catch {
       setUser(null);
     } finally {
@@ -20,6 +22,7 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     checkAuth();
+    return () => disconnectSocket();
   }, []);
 
   const signup = async (data) => {
@@ -35,6 +38,7 @@ export function AuthProvider({ children }) {
   const login = async (data) => {
     const res = await api.post("/auth/login", data);
     setUser(res.data.user);
+    connectSocket(res.data.user._id);
     return res.data;
   };
 
@@ -44,6 +48,7 @@ export function AuthProvider({ children }) {
     } catch {
       // clear local state even if API fails
     } finally {
+      disconnectSocket();
       setUser(null);
     }
   };
@@ -51,6 +56,7 @@ export function AuthProvider({ children }) {
   const googleLogin = async (token) => {
     const res = await api.post("/auth/google", { token });
     setUser(res.data.user);
+    connectSocket(res.data.user._id);
     return res.data;
   };
 

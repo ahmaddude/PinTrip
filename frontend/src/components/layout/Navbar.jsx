@@ -1,13 +1,58 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Search, MapPin, Plus, Users, User, LogOut, Menu, Compass } from "lucide-react";
-import { useState } from "react";
+import { Search, MapPin, Plus, Users, User, LogOut, Menu, Compass, Bell } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
+import api from "../../utils/api";
+import ActivityPanel from "../ActivityPanel";
 
 export default function Navbar({ onToggleSidebar }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [showMenu, setShowMenu] = useState(false);
+  const [showActivity, setShowActivity] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (user) {
+      fetchUnreadCount();
+      const interval = setInterval(fetchUnreadCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user]);
+
+  const fetchUnreadCount = async () => {
+    try {
+      const res = await api.get("/notifications/unread-count");
+      setUnreadCount(res.data.unreadCount);
+    } catch (err) {
+      console.error("Failed to fetch unread count:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (!user) return;
+    
+    const handleNewNotification = (event) => {
+      setUnreadCount((prev) => prev + 1);
+    };
+
+    window.addEventListener("newNotification", handleNewNotification);
+    return () => window.removeEventListener("newNotification", handleNewNotification);
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchUnreadCount();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [user]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -81,6 +126,20 @@ export default function Navbar({ onToggleSidebar }) {
               >
                 <Users size={20} />
               </Link>
+              <div className="relative">
+                <button
+                  onClick={() => setShowActivity(!showActivity)}
+                  className="relative p-2.5 hover:bg-[#E7DFCE] rounded-md text-[#6B6558] hover:text-[#35503F] transition"
+                >
+                  <Bell size={20} />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center px-1 bg-[#A23B3B] text-[#F2ECE0] text-[10px] font-bold rounded-full">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  )}
+                </button>
+                <ActivityPanel isOpen={showActivity} onClose={() => setShowActivity(false)} />
+              </div>
               <div className="relative">
                 <button
                   onClick={() => setShowMenu(!showMenu)}

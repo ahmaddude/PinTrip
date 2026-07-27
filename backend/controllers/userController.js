@@ -1,5 +1,7 @@
 import  User  from "../modles/UserModle.js";
 import  Pin  from "../modles/PinModle.js";
+import Notification from "../modles/NotificationsModle.js";
+import { getIo, onlineUsers } from "../utils/socket.js";
 
 function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -103,6 +105,25 @@ export const sendFollowReq = async (req, res) => {
       sender.followRequests = sender.followRequests.filter(id => id.toString() !== targetUserId);
       await sender.save();
       await receiver.save();
+
+      // Create followAccepted notification
+      const io = getIo();
+      const notification = new Notification({
+        recipient: userId,
+        sender: targetUserId,
+        type: "followAccepted",
+        message: `${receiver.name} accepted your follow request`,
+      });
+      await notification.save();
+      
+      const recipientSocketId = onlineUsers.get(userId);
+      if (recipientSocketId && io) {
+        io.to(recipientSocketId).emit("newNotification", {
+          ...notification.toObject(),
+          sender: { _id: receiver._id, name: receiver.name, avatar: receiver.avatar },
+        });
+      }
+
       return res.status(200).json({ message: "You are now friends!", autoAccepted: true });
     }
 
@@ -111,6 +132,24 @@ export const sendFollowReq = async (req, res) => {
 
     receiver.followRequests.push(userId);
     await receiver.save();
+
+    // Create follow notification
+    const io = getIo();
+    const notification = new Notification({
+      recipient: targetUserId,
+      sender: userId,
+      type: "follow",
+      message: `${sender.name} wants to follow you`,
+    });
+    await notification.save();
+    
+    const recipientSocketId = onlineUsers.get(targetUserId);
+    if (recipientSocketId && io) {
+      io.to(recipientSocketId).emit("newNotification", {
+        ...notification.toObject(),
+        sender: { _id: sender._id, name: sender.name, avatar: sender.avatar },
+      });
+    }
 
     res.status(200).json({ message: "Friend request sent" });
   } catch (error) {
@@ -137,6 +176,24 @@ export const respondFollowRequest = async (req, res) => {
       receiver.followers.push(senderId);
       sender.following.push(userId);
       await sender.save();
+
+      // Create followAccepted notification
+      const io = getIo();
+      const notification = new Notification({
+        recipient: senderId,
+        sender: userId,
+        type: "followAccepted",
+        message: `${receiver.name} accepted your follow request`,
+      });
+      await notification.save();
+      
+      const recipientSocketId = onlineUsers.get(senderId);
+      if (recipientSocketId && io) {
+        io.to(recipientSocketId).emit("newNotification", {
+          ...notification.toObject(),
+          sender: { _id: receiver._id, name: receiver.name, avatar: receiver.avatar },
+        });
+      }
     }
 
     await receiver.save();

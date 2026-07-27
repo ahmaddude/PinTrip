@@ -102,6 +102,34 @@ export const createPin=async(req,res)=>{
             }
         }
 
+        // Notify all followers about the new pin (except self and already tagged users)
+        const pinCreator = await User.findById(userId).select('followers');
+        if (pinCreator && pinCreator.followers && pinCreator.followers.length > 0) {
+            const taggedUserIdsStr = taggedUsers.map(id => id.toString());
+            const followersToNotify = pinCreator.followers.filter(
+                followerId => followerId.toString() !== userId && !taggedUserIdsStr.includes(followerId.toString())
+            );
+            
+            for (const followerId of followersToNotify) {
+                const notification = new Notification({
+                    recipient: followerId,
+                    sender: userId,
+                    type: "newPost",
+                    pin: pin._id,
+                    message: `${sender.name} posted a new pin`,
+                });
+                await notification.save();
+                
+                const recipientSocketId = onlineUsers.get(followerId.toString());
+                if (recipientSocketId && io) {
+                    io.to(recipientSocketId).emit("newNotification", {
+                        ...notification.toObject(),
+                        sender: { _id: sender._id, name: sender.name, avatar: sender.avatar },
+                    });
+                }
+            }
+        }
+
         res.status(201).json({
         success: true,
         message: "Pin created successfully",
@@ -218,6 +246,31 @@ export const LikeAPin = async (req, res) => {
     } else {
       pin.likes.push(userId);
       await pin.save();
+
+      // Create notification for pin owner
+      if (pin.user.toString() !== userId) {
+        const sender = await User.findById(userId).select('name avatar');
+        const io = getIo();
+        
+        const notification = new Notification({
+          recipient: pin.user,
+          sender: userId,
+          type: "like",
+          pin: pin._id,
+          message: `${sender.name} liked your pin`,
+        });
+        await notification.save();
+        
+        // Emit real-time notification if user is online
+        const recipientSocketId = onlineUsers.get(pin.user.toString());
+        if (recipientSocketId && io) {
+          io.to(recipientSocketId).emit("newNotification", {
+            ...notification.toObject(),
+            sender: { _id: sender._id, name: sender.name, avatar: sender.avatar },
+          });
+        }
+      }
+
       const populatedPin = await Pin.findById(pin._id)
         .populate("user", "name avatar")
         .populate("comments.user", "name avatar")
@@ -250,6 +303,31 @@ export const comment =async(req,res)=>{
       text:comment
     })
     await pin.save();
+
+    // Create notification for pin owner
+    if (pin.user.toString() !== userId) {
+      const sender = await User.findById(userId).select('name avatar');
+      const io = getIo();
+      
+      const notification = new Notification({
+        recipient: pin.user,
+        sender: userId,
+        type: "comment",
+        pin: pin._id,
+        message: `${sender.name} commented on your pin`,
+      });
+      await notification.save();
+      
+      // Emit real-time notification if user is online
+      const recipientSocketId = onlineUsers.get(pin.user.toString());
+      if (recipientSocketId && io) {
+        io.to(recipientSocketId).emit("newNotification", {
+          ...notification.toObject(),
+          sender: { _id: sender._id, name: sender.name, avatar: sender.avatar },
+        });
+      }
+    }
+
     const updatedPin = await Pin.findById(pin._id).populate("comments.user", "name avatar");
 
     res.status(201).json({success:true,message:"comment added successfully",pin:updatedPin});
