@@ -159,25 +159,30 @@ export default function CreatePin() {
                     </>
                   )}
                 </div>
-                {files.length > 1 && (
-                  <div className="flex gap-2 overflow-x-auto pb-1">
-                    {previews.map((p, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => setPreviewIndex(i)}
-                        className={`relative flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition ${
-                          i === previewIndex ? "border-[#35503F]" : "border-[#D8CFBC]"
-                        }`}
-                      >
-                        <img src={p} alt="" className="w-full h-full object-cover" />
-                      </button>
-                    ))}
-                    <label className="flex-shrink-0 w-16 h-16 rounded-md border border-dashed border-[#D8CFBC] flex items-center justify-center cursor-pointer hover:border-[#B8863B] transition">
-                      <Upload size={16} className="text-[#9A9384]" />
-                      <input type="file" accept="image/*" multiple onChange={handleFileChange} className="hidden" />
-                    </label>
-                  </div>
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {previews.map((p, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setPreviewIndex(i)}
+                      className={`relative flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition ${
+                        i === previewIndex ? "border-[#35503F]" : "border-[#D8CFBC]"
+                      }`}
+                    >
+                      <img src={p} alt="" className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                  <label className="flex-shrink-0 w-16 h-16 rounded-md border border-dashed border-[#D8CFBC] flex items-center justify-center cursor-pointer hover:border-[#B8863B] transition">
+                    <Upload size={16} className="text-[#9A9384]" />
+                    <input type="file" accept="image/*" multiple onChange={handleFileChange} className="hidden" />
+                  </label>
+                </div>
+                {files.length < 10 && (
+                  <label className="flex items-center justify-center gap-2 w-full py-2.5 border border-dashed border-[#D8CFBC] rounded-md text-sm text-[#6B6558] hover:border-[#B8863B] hover:text-[#B8863B] cursor-pointer transition">
+                    <Upload size={14} />
+                    Add more pictures
+                    <input type="file" accept="image/*" multiple onChange={handleFileChange} className="hidden" />
+                  </label>
                 )}
               </div>
             ) : (
