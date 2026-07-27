@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { MapPin, Calendar, Trash2, ArrowLeft, Globe, Users, Lock, GripVertical } from "lucide-react";
-import { MapContainer, TileLayer, Polyline, useMap } from "react-leaflet";
+import { MapPin, Calendar, Trash2, ArrowLeft, Globe, Users, Lock } from "lucide-react";
+import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap } from "react-leaflet";
+import L from "leaflet";
 import toast from "react-hot-toast";
 import api from "../utils/api";
 import { useAuth } from "../context/AuthContext";
 import PinCard from "../components/PinCard";
-import { defaultPinIcon } from "../components/MapMarker";
 
 function FitBounds({ positions }) {
   const map = useMap();
@@ -18,8 +18,28 @@ function FitBounds({ positions }) {
   return null;
 }
 
-function TripMarker({ position, index }) {
-  return null;
+function createNumberIcon(number) {
+  return L.divIcon({
+    className: "",
+    html: `<div style="
+      width: 28px;
+      height: 28px;
+      background: #35503F;
+      color: #F2ECE0;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: 'Inter', sans-serif;
+      border: 2px solid #F2ECE0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    ">${number}</div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+    popupAnchor: [0, -16],
+  });
 }
 
 const visibilityIcons = {
@@ -35,7 +55,6 @@ export default function TripDetail() {
   const [trip, setTrip] = useState(null);
   const [pins, setPins] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activePin, setActivePin] = useState(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -185,7 +204,7 @@ export default function TripDetail() {
           </div>
         </div>
 
-        {polylinePositions.length > 1 && (
+        {pinsWithCoords.length > 0 && (
           <div className="bg-white border border-[#D8CFBC] rounded-md overflow-hidden mb-8">
             <div className="p-4 border-b border-[#EDE7D9]">
               <h2
@@ -207,26 +226,33 @@ export default function TripDetail() {
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
                 <FitBounds positions={polylinePositions} />
-                <Polyline
-                  positions={polylinePositions}
-                  color="#35503F"
-                  weight={3}
-                  opacity={0.8}
-                  dashArray="10, 10"
-                />
+                {polylinePositions.length > 1 && (
+                  <Polyline
+                    positions={polylinePositions}
+                    color="#35503F"
+                    weight={3}
+                    opacity={0.8}
+                    dashArray="10, 10"
+                  />
+                )}
                 {pinsWithCoords.map((pin, index) => (
-                  <div key={pin._id}>
-                    <div
-                      className="absolute z-[1000] w-6 h-6 -ml-3 -mt-3 bg-[#35503F] text-[#F2ECE0] rounded-full flex items-center justify-center text-xs font-bold cursor-pointer hover:bg-[#202A22] transition"
-                      style={{
-                        left: `${50}%`,
-                        top: `${50}%`,
-                      }}
-                      onClick={() => setActivePin(pin)}
-                    >
-                      {index + 1}
-                    </div>
-                  </div>
+                  <Marker
+                    key={pin._id}
+                    position={[pin.coordinates.lat, pin.coordinates.lng]}
+                    icon={createNumberIcon(index + 1)}
+                  >
+                    <Popup>
+                      <div className="text-center min-w-[120px]">
+                        <img
+                          src={pin.image}
+                          alt={pin.title}
+                          className="w-full h-20 object-cover rounded mb-1"
+                        />
+                        <p className="text-sm font-medium text-[#202A22]">{pin.title}</p>
+                        <p className="text-xs text-[#9A9384]">{pin.location}</p>
+                      </div>
+                    </Popup>
+                  </Marker>
                 ))}
               </MapContainer>
             </div>
