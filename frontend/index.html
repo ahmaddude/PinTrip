@@ -9,7 +9,18 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#F2ECE0;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:16px;">
+          <div style="position:relative;width:40px;height:40px;">
+            <div style="position:absolute;inset:0;border-radius:50%;border:2px solid #D8CFBC;"></div>
+            <div style="position:absolute;inset:0;border-radius:50%;border:2px solid transparent;border-top-color:#35503F;animation:ospin 0.8s linear infinite;"></div>
+          </div>
+          <p style="font-family:monospace;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#6B6558;margin:0;">Loading</p>
+        </div>
+      </div>
+      <style>@keyframes ospin{to{transform:rotate(360deg)}}</style>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

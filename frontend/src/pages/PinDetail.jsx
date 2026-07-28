@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { Heart, MessageCircle, MapPin, Trash2, Send, ArrowLeft, Users, ChevronLeft, ChevronRight } from "lucide-react";
+import { Heart, MessageCircle, MapPin, Trash2, Send, ArrowLeft, Users, ChevronLeft, ChevronRight, Route } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../utils/api";
 import { useAuth } from "../context/AuthContext";
@@ -203,6 +203,23 @@ export default function PinDetail() {
                       </Link>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {pin.trip && (
+                <div className="flex items-center justify-between px-4 py-3 bg-[#35503F]/5 border border-[#35503F]/15 rounded-md mb-5">
+                  <div className="flex items-center gap-2.5">
+                    <Route size={14} className="text-[#35503F]" />
+                    <p className="text-sm text-[#6B6558]">
+                      Part of trip <span className="font-medium text-[#202A22]">{pin.trip.title}</span>
+                    </p>
+                  </div>
+                  <Link
+                    to={`/trip/${pin.trip._id}`}
+                    className="text-xs font-medium text-[#35503F] hover:text-[#202A22] px-3 py-1.5 rounded-md bg-[#35503F]/10 hover:bg-[#35503F]/20 transition"
+                  >
+                    View trip
+                  </Link>
                 </div>
               )}
 

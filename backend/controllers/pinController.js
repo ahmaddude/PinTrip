@@ -214,7 +214,8 @@ export const getOnePin = async (req, res) => {
       .populate("user", "name avatar")
       .populate("comments.user", "name avatar")
       .populate("likes", "name avatar")
-      .populate("taggedUsers", "name avatar");
+      .populate("taggedUsers", "name avatar")
+      .populate("trip", "title");
 
     if (!pin) return res.status(404).json({ message: "Pin not found" });
 

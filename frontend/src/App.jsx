@@ -28,6 +28,9 @@ function AuthSpinner() {
           <div className="absolute inset-0 rounded-full border-2 border-[#D8CFBC]" />
           <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#35503F] animate-spin" />
         </div>
+        <p className="text-xs tracking-[0.2em] uppercase text-[#6B6558] font-mono">
+          Loading
+        </p>
       </div>
     </div>
   );
