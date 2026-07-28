@@ -98,12 +98,16 @@ export const getUserTrips = async (req, res) => {
       .populate("user", "name avatar")
       .sort({ createdAt: -1 });
 
-    const tripsWithCounts = await Promise.all(
-      trips.map(async (trip) => {
-        const pinCount = await Pin.countDocuments({ trip: trip._id });
-        return { ...trip.toObject(), pinCount };
-      })
-    );
+    const pinCounts = await Pin.aggregate([
+      { $match: { trip: { $in: trips.map(t => t._id) } } },
+      { $group: { _id: "$trip", count: { $sum: 1 } } },
+    ]);
+    const pinCountMap = new Map(pinCounts.map(pc => [pc._id.toString(), pc.count]));
+
+    const tripsWithCounts = trips.map(trip => ({
+      ...trip.toObject(),
+      pinCount: pinCountMap.get(trip._id.toString()) || 0,
+    }));
 
     res.status(200).json({
       success: true,

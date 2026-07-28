@@ -69,6 +69,7 @@ const PinSchema = new mongoose.Schema(
 
 PinSchema.index({ user: 1 });
 PinSchema.index({ createdAt: -1 });
+PinSchema.index({ trip: 1, tripOrder: 1 });
 PinSchema.index({ location: "text", title: "text", description: "text" });
 
  const Pin = mongoose.model("Pin", PinSchema);
