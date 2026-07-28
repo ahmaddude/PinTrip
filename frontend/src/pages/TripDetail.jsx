@@ -66,13 +66,12 @@ export default function TripDetail() {
       const res = await api.get(`/trips/${id}`, { signal });
       setTrip(res.data.trip);
       setPins(res.data.pins || []);
+      setLoading(false);
     } catch (err) {
       if (err.name !== "CanceledError" && err.name !== "AbortError") {
         toast.error("Trip not found");
         navigate("/");
       }
-    } finally {
-      setLoading(false);
     }
   };
 

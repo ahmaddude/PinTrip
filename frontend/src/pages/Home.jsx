@@ -14,12 +14,12 @@ export default function Home() {
       try {
         const res = await api.get("/pin/following-pins", { signal: controller.signal });
         setPins(res.data.pins);
+        setLoading(false);
       } catch (err) {
         if (err.name !== "CanceledError" && err.name !== "AbortError") {
           console.error("Error fetching pins:", err);
+          setLoading(false);
         }
-      } finally {
-        setLoading(false);
       }
     };
     fetchPins();

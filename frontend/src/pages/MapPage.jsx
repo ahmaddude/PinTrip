@@ -18,12 +18,12 @@ export default function MapPage() {
           (p) => p.coordinates?.lat && p.coordinates?.lng
         );
         setPins(geoPins);
+        setLoading(false);
       } catch (err) {
         if (err.name !== "CanceledError" && err.name !== "AbortError") {
           console.error("Error fetching pins:", err);
+          setLoading(false);
         }
-      } finally {
-        setLoading(false);
       }
     };
     fetchPins();

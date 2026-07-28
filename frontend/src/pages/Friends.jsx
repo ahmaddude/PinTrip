@@ -37,9 +37,9 @@ export default function Friends() {
         }
       });
       setFriends(Array.from(friendMap.values()));
+      setLoading(false);
     } catch (err) {
       console.error(err);
-    } finally {
       setLoading(false);
     }
   };

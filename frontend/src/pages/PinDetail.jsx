@@ -22,13 +22,12 @@ export default function PinDetail() {
       try {
         const res = await api.get(`/pin/${id}`, { signal: controller.signal });
         setPin(res.data.pin);
+        setLoading(false);
       } catch (err) {
         if (err.name !== "CanceledError" && err.name !== "AbortError") {
           toast.error("Pin not found");
           navigate("/");
         }
-      } finally {
-        setLoading(false);
       }
     };
     fetchPin();

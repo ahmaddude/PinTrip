@@ -29,12 +29,12 @@ export default function Profile() {
         setProfile(profileRes.data.user);
         setPins(profileRes.data.pins || []);
         setTrips(tripsRes.data.trips || []);
+        setLoading(false);
       } catch (err) {
         if (err.name !== "CanceledError" && err.name !== "AbortError") {
           toast.error(err.response?.data?.message || "Failed to load profile");
+          setLoading(false);
         }
-      } finally {
-        setLoading(false);
       }
     };
     fetchProfile();
