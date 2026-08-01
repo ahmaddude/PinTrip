@@ -48,7 +48,7 @@ app.use(
         fontSrc: ["'self'", "https:", "http:", "data:"],
         imgSrc: ["'self'", "data:", "blob:", "https:", "http:"],
         frameSrc: ["'self'", "https://accounts.google.com"],
-        connectSrc: ["'self'", "https://accounts.google.com"],
+        connectSrc: ["'self'", "https://accounts.google.com", "https://nominatim.openstreetmap.org"],
         objectSrc: ["'none'"],
         frameAncestors: ["'self'"],
       },
