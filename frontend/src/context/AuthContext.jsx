@@ -11,8 +11,12 @@ export function AuthProvider({ children }) {
   const checkAuth = async () => {
     try {
       const res = await api.get("/auth/check-auth");
-      setUser(res.data.user);
-      connectSocket(res.data.user._id);
+      if (res.data.user) {
+        setUser(res.data.user);
+        connectSocket(res.data.user._id);
+      } else {
+        setUser(null);
+      }
     } catch {
       setUser(null);
     } finally {

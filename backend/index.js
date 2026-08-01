@@ -35,7 +35,23 @@ const server = http.createServer(app);
 const io = initSocket(server);
 
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "https://accounts.google.com", "https://*.gstatic.com"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https:", "http:"],
+        fontSrc: ["'self'", "https:", "http:", "data:"],
+        imgSrc: ["'self'", "data:", "blob:", "https:", "http:"],
+        frameSrc: ["'self'", "https://accounts.google.com"],
+        connectSrc: ["'self'", "https://accounts.google.com"],
+        objectSrc: ["'none'"],
+        frameAncestors: ["'self'"],
+      },
+    },
+  })
+);
 app.use(cors({
   origin: process.env.CLIENT_URL || "http://localhost:5173",
   credentials: true

@@ -229,9 +229,12 @@ export const loginWithGoogle=async(req,res)=>{
 
 export const checkAuth=async(req,res)=>{
     try {
+        if (!req.userId) {
+            return res.status(200).json({success:true, message:"Not authenticated", user:null});
+        }
         const user=await User.findById(req.userId)
         if(!user){
-        return res.status(400).json({success:false, message:"User not found"});
+        return res.status(200).json({success:true, message:"User not found", user:null});
         }
         res.status(200).json({success:true, message:"User found", user:{
             ...user._doc,

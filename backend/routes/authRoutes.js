@@ -1,6 +1,7 @@
 import express from "express";
 import {checkAuth, forgotPassword, login, loginWithGoogle, logout, resetPassword, signup, updateProfile, verifyAccount} from "../controllers/authController.js";
 import { verifyToken } from "../middleWare/verifyToken.js";
+import { optionalAuth } from "../middleWare/optionalverify.js";
 import multer from "multer";
 
 
@@ -33,7 +34,7 @@ authRouter.post("/reset-password",resetPassword);
 
 authRouter.post("/google", loginWithGoogle);
 
-authRouter.get("/check-auth",verifyToken,checkAuth);
+authRouter.get("/check-auth",optionalAuth,checkAuth);
 
 authRouter.put('/update-profile', verifyToken, upload.single("avatar"), updateProfile);
 
