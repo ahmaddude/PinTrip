@@ -14,6 +14,11 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import morgan from "morgan";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const requiredEnvVars = ["MONGO_DB", "JWT_SECRET"];
 for (const v of requiredEnvVars) {
@@ -70,6 +75,16 @@ app.use("/api/user", userRouter);
 app.use("/api/pin", pinRouter);
 app.use("/api/notifications", notificationRouter);
 app.use("/api/trips", tripRouter);
+
+if (process.env.NODE_ENV === "production") {
+  const distPath = path.resolve(__dirname, "../frontend/dist");
+  app.use(express.static(distPath));
+  app.use((req, res, next) => {
+    if (req.method !== "GET") return next();
+    if (req.path.startsWith("/api") || req.path.startsWith("/socket.io")) return next();
+    res.sendFile(path.join(distPath, "index.html"));
+  });
+}
 
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "Route not found" });
