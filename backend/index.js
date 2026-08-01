@@ -38,6 +38,8 @@ app.set("trust proxy", 1);
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 app.use(
   helmet({
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+    referrerPolicy: { policy: "no-referrer-when-downgrade" },
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
