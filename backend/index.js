@@ -34,6 +34,7 @@ const app=express();
 const server = http.createServer(app);
 const io = initSocket(server);
 
+app.set("trust proxy", 1);
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 app.use(
   helmet({
