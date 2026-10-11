@@ -42,7 +42,7 @@ export default function Sidebar({ isOpen, onClose }) {
       <aside
         className={`fixed top-16 left-0 bottom-0 w-64 bg-[#F2ECE0]/95 backdrop-blur-xl border-r border-[#D8CFBC] z-40 transform transition-transform duration-200 ease-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 lg:static lg:top-0`}
+        } lg:translate-x-0 lg:sticky lg:top-16 lg:bottom-auto lg:h-[calc(100vh-4rem)]`}
       >
         <div className="p-4 flex flex-col h-full">
           <button
