@@ -4,6 +4,7 @@ import { Upload, MapPin, X, Crosshair, ChevronLeft, ChevronRight } from "lucide-
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import toast from "react-hot-toast";
 import api from "../utils/api";
+import { CARTO_VOYAGER_TILE_URL } from "../utils/mapTiles";
 import { defaultPinIcon } from "../components/MapMarker";
 import MentionAutocomplete from "../components/MentionAutocomplete";
 
@@ -255,7 +256,7 @@ export default function CreatePin() {
               >
                 <TileLayer
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>'
-                  url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                  url={CARTO_VOYAGER_TILE_URL}
                 />
                 <LocationMarker position={position} onPositionChange={handleMapClick} />
               </MapContainer>

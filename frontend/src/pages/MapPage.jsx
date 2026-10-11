@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { Link } from "react-router-dom";
 import { MapPin } from "lucide-react";
 import api from "../utils/api";
+import { CARTO_VOYAGER_TILE_URL } from "../utils/mapTiles";
 import { createAvatarIcon } from "../components/MapMarker";
 
 export default function MapPage() {
@@ -70,7 +71,7 @@ export default function MapPage() {
           >
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>'
-              url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+              url={CARTO_VOYAGER_TILE_URL}
             />
             {pins.map((pin) => (
               <Marker

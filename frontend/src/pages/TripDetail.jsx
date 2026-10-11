@@ -4,6 +4,7 @@ import { MapPin, Calendar, Trash2, ArrowLeft, Globe, Users, Lock, Pencil, Plus, 
 import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap } from "react-leaflet";
 import toast from "react-hot-toast";
 import api from "../utils/api";
+import { CARTO_VOYAGER_TILE_URL } from "../utils/mapTiles";
 import { useAuth } from "../context/AuthContext";
 import PinCard from "../components/PinCard";
 import { confirmToast } from "../components/ConfirmToast";
@@ -300,7 +301,7 @@ export default function TripDetail() {
               >
                 <TileLayer
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>'
-                  url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                  url={CARTO_VOYAGER_TILE_URL}
                 />
                 <FitBounds positions={polylinePositions} />
                 {polylinePositions.length > 1 && (
