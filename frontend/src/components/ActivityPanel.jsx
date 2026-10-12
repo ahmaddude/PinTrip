@@ -112,9 +112,9 @@ export default function ActivityPanel({ isOpen, onClose }) {
   return (
     <div
       ref={panelRef}
-      className="absolute right-2 left-2 sm:right-0 sm:left-auto top-12 bg-white rounded-md shadow-lg shadow-[#20220000]/10 border border-[#D8CFBC] w-auto sm:w-96 max-h-[calc(100dvh-5rem)] sm:max-h-[70vh] z-50 flex flex-col overscroll-contain"
+      className="fixed left-1/2 -translate-x-1/2 top-16 w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] sm:absolute sm:left-auto sm:right-0 sm:translate-x-0 sm:top-12 sm:w-96 sm:max-w-none bg-white rounded-md shadow-lg shadow-[#20220000]/10 border border-[#D8CFBC] max-h-[calc(100dvh-5rem)] sm:max-h-[70vh] z-50 flex flex-col overscroll-contain"
     >
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[#EDE7D9]">
+      <div className="flex items-center justify-between px-3 sm:px-4 py-3 border-b border-[#EDE7D9]">
         <h3
           className="text-sm font-semibold text-[#202A22]"
           style={{ fontFamily: "'Fraunces', serif" }}
@@ -151,53 +151,53 @@ export default function ActivityPanel({ isOpen, onClose }) {
                     if (!notification.read) markAsRead(notification._id);
                     onClose();
                   }}
-                  className={`flex items-start gap-3 px-4 py-3 hover:bg-[#F2ECE0] transition border-b border-[#EDE7D9] last:border-b-0 ${
-                    !notification.read ? "bg-[#F2ECE0]/50" : ""
-                  }`}
+                   className={`flex items-start gap-2.5 sm:gap-3 px-3 sm:px-4 py-3 hover:bg-[#F2ECE0] transition border-b border-[#EDE7D9] last:border-b-0 ${
+                     !notification.read ? "bg-[#F2ECE0]/50" : ""
+                   }`}
                 >
                   <div className="relative flex-shrink-0">
                     {notification.sender?.avatar ? (
-                      <img
-                        src={notification.sender.avatar}
-                        alt=""
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-[#35503F] text-[#F2ECE0] flex items-center justify-center text-sm font-semibold">
-                        {notification.sender?.name?.charAt(0)}
-                      </div>
+                     <img
+                         src={notification.sender.avatar}
+                         alt=""
+                         className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover"
+                       />
+                     ) : (
+                       <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#35503F] text-[#F2ECE0] flex items-center justify-center text-xs sm:text-sm font-semibold">
+                         {notification.sender?.name?.charAt(0)}
+                       </div>
                     )}
-                    <div
-                      className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center ${iconConfig.bg}`}
-                    >
-                      <Icon size={10} className={iconConfig.color} />
-                    </div>
+                     <div
+                       className={`absolute -bottom-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center ${iconConfig.bg}`}
+                     >
+                       <Icon size={9} className={iconConfig.color} />
+                     </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-[#202A22] leading-snug">
-                      <span className="font-medium">{notification.sender?.name}</span>{" "}
-                      <span className="text-[#6B6558]">
-                        {notification.type === "like" && "liked your pin"}
-                        {notification.type === "comment" && "commented on your pin"}
-                        {notification.type === "follow" && "wants to follow you"}
-                        {notification.type === "followAccepted" && "accepted your follow request"}
-                        {notification.type === "mention" && "mentioned you in a pin"}
-                        {notification.type === "newPost" && "posted a new pin"}
-                      </span>
-                    </p>
-                    <p className="text-xs text-[#9A9384] mt-1">
-                      {timeAgo(notification.createdAt)}
-                    </p>
-                  </div>
-                  {notification.pin?.images?.[0] && (
-                    <img
-                      src={notification.pin.images[0].url}
-                      alt=""
-                      className="w-10 h-10 rounded-md object-cover flex-shrink-0"
-                    />
-                  )}
+                   <div className="flex-1 min-w-0">
+                     <p className="text-xs sm:text-sm text-[#202A22] leading-snug">
+                       <span className="font-medium">{notification.sender?.name}</span>{" "}
+                       <span className="text-[#6B6558]">
+                         {notification.type === "like" && "liked your pin"}
+                         {notification.type === "comment" && "commented on your pin"}
+                         {notification.type === "follow" && "wants to follow you"}
+                         {notification.type === "followAccepted" && "accepted your follow request"}
+                         {notification.type === "mention" && "mentioned you in a pin"}
+                         {notification.type === "newPost" && "posted a new pin"}
+                       </span>
+                     </p>
+                     <p className="text-[11px] sm:text-xs text-[#9A9384] mt-0.5 sm:mt-1">
+                       {timeAgo(notification.createdAt)}
+                     </p>
+                   </div>
+                   {notification.pin?.images?.[0] && (
+                     <img
+                       src={notification.pin.images[0].url}
+                       alt=""
+                       className="w-9 h-9 sm:w-10 sm:h-10 rounded-md object-cover flex-shrink-0"
+                     />
+                   )}
                   {!notification.read && (
-                    <div className="w-2 h-2 rounded-full bg-[#35503F] flex-shrink-0 mt-2" />
+                    <div                    className="w-2 h-2 rounded-full bg-[#35503F] flex-shrink-0 mt-1.5 sm:mt-2" />
                   )}
                 </Link>
               );
