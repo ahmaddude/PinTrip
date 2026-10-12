@@ -112,7 +112,7 @@ export default function ActivityPanel({ isOpen, onClose }) {
   return (
     <div
       ref={panelRef}
-      className="absolute right-0 top-12 bg-white rounded-md shadow-lg shadow-[#20220000]/10 border border-[#D8CFBC] w-96 max-h-[70vh] z-50 flex flex-col"
+      className="absolute right-2 left-2 sm:right-0 sm:left-auto top-12 bg-white rounded-md shadow-lg shadow-[#20220000]/10 border border-[#D8CFBC] w-auto sm:w-96 max-h-[calc(100dvh-5rem)] sm:max-h-[70vh] z-50 flex flex-col overscroll-contain"
     >
       <div className="flex items-center justify-between px-4 py-3 border-b border-[#EDE7D9]">
         <h3
